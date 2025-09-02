@@ -548,6 +548,10 @@ int main(int argc, char *argv[])
 
 	 #if defined(_PLATFORM_BANANAPI_R4_)
 	 	 webpaUrl=(char *)malloc(MAX_SERVER_URL_SIZE * sizeof(char)); 
+		 if (webpaUrl == NULL) {
+		     LogError("Failed to allocate memory for webpaUrl\n");
+		     goto RETURN_ERROR;
+		 }
 		 get_webpa_url(webpaUrl);
          #else
 	if(strncmp(build_type, "dev", strlen(build_type)+1) == 0)
