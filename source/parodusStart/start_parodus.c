@@ -123,6 +123,9 @@
 /*                             Function Prototypes                            */
 /*----------------------------------------------------------------------------*/
 STATIC void get_url(char *parodus_url, char *seshat_url, char *build_type);
+#if defined(_PLATFORM_BANANAPI_R4_)
+STATIC void get_webpa_url(char *webpaUrl);
+#endif	
 STATIC void getPartnerId(char *partner_id);
 STATIC int addParodusCmdToFile(char *command);
 static void _START_LOG(int level, const char *msg, ...);
@@ -136,7 +139,9 @@ STATIC void waitForPSMHealth(char *compName);
 STATIC int syncXpcParamsOnUpgrade(char *lastRebootReason, char *firmwareVersion);
 STATIC void free_sync_db_items(int paramCount,char *psmValues[],char *sysCfgValues[]);
 STATIC void get_parodusStart_logFile(char *parodusStart_Log);
+#if !defined(_PLATFORM_BANANAPI_R4_)
 STATIC void checkAndUpdateServerUrlFromDevCfg(char **serverUrl);
+#endif
 #if !defined(_COSA_BCM_MIPS_)
 int s_sysevent_connect (token_t *out_se_token);
 #endif
@@ -237,7 +242,7 @@ int main(int argc, char *argv[])
 	char manufacturer[64]={'\0'};
 #if defined(_COSA_BCM_MIPS_)
 	dpoe_mac_address_t tDpoe_Mac;
-#else
+#elif !defined(_PLATFORM_RASPBERRYPI_) && !defined(_PLATFORM_BANANAPI_R4_)
 	CMMGMT_CM_DHCP_INFO dhcpinfo;
 #endif
 	char parodus_url[MAX_SERVER_URL_SIZE] = {'\0'};
@@ -446,15 +451,31 @@ int main(int argc, char *argv[])
                   backoffRetryTime = (int)pow(2, c) - 1;
               }
 
+	      #if !defined(_PLATFORM_RASPBERRYPI_) && !defined(_PLATFORM_BANANAPI_R4_)
               if (cm_hal_GetDHCPInfo(&dhcpinfo) == 0)
-              {
-                  LogInfo("MACAddress = %s\n", dhcpinfo.MACAddress);
-                  rc = strcpy_s(deviceMac, sizeof(deviceMac), dhcpinfo.MACAddress);
-                  if(rc != EOK)
-                  {
-                      ERR_CHK(rc);
-                      LogError("Failed to Copy dhcpinfo.MACAddress to deviceMac\n");
-                  }
+	      {
+		       LogInfo("MACAddress = %s\n", dhcpinfo.MACAddress);
+		       rc = strcpy_s(deviceMac, sizeof(deviceMac), dhcpinfo.MACAddress);
+                       rc = strcpy_s(deviceMac, sizeof(deviceMac), dhcpinfo.MACAddress);
+	               if(rc != EOK)
+         	       {
+	             	      ERR_CHK(rc);
+        	              LogError("Failed to Copy dhcpinfo.MACAddress to deviceMac\n");
+                       }
+	      }	       
+
+              #else
+
+                if (platform_hal_GetBaseMacAddress(deviceMac) == 0){
+
+                     LogInfo("Mac address  returned from hal:%s\n", deviceMac);
+                }
+                else
+                {  
+                      LogError("Unable to get mac address\n");
+                } 
+                      
+              #endif			  
 
                   if((strlen(deviceMac) != 0) && (strcmp(deviceMac, DEFAULT_CM_MAC) != 0))
                   {
@@ -525,17 +546,23 @@ int main(int argc, char *argv[])
          LogInfo("seshat_url returned is %s\n", seshat_url);
 	 LogInfo("build_type returned is %s\n", build_type);
 
+
+	 #if defined(_PLATFORM_BANANAPI_R4_)
+	 	 webpaUrl=(char *)malloc(MAX_SERVER_URL_SIZE * sizeof(char)); 
+		 get_webpa_url(webpaUrl);
+         #else
 	if(strncmp(build_type, "dev", strlen(build_type)+1) == 0)
 	{
 		getValueFromCfgJson( WEBPA_CFG_SERVER_URL, &webpaUrl, &out);
 		LogInfo("webpaUrl fetched from webpa_cfg.json is %s\n", webpaUrl);
-        checkAndUpdateServerUrlFromDevCfg(&webpaUrl);
+                checkAndUpdateServerUrlFromDevCfg(&webpaUrl);
 		LogInfo("Framed webpa url is %s\n",webpaUrl);
 		if(out != NULL)
 		{
 			cJSON_Delete(out);
 		}
 	}
+        #endif
 
         getPartnerId(partner_id);
         LogInfo("PartnerID fetched is %s\n", partner_id);
@@ -870,6 +897,34 @@ RETURN_ERROR:
 /*----------------------------------------------------------------------------*/
 /*                             Internal functions                             */
 /*----------------------------------------------------------------------------*/
+
+#if defined(_PLATFORM_BANANAPI_R4_)
+STATIC void get_webpa_url(char *webpaUrl){
+
+        FILE *fp = fopen(DEVICE_PROPS_FILE, "r");
+        if (NULL != fp)
+        {
+                char str[255] = {'\0'};
+                while(fscanf(fp,"%s", str) != EOF)
+                {
+                    char *value = NULL;
+                    if((value = strstr(str, "SERVERURL=")))
+                    {
+                        value = value + strlen("SERVERURL=");
+                        strcpy_s(webpaUrl, MAX_SERVER_URL_SIZE, value);
+                        fclose(fp);
+                        return;
+
+                    }
+              }
+                if (NULL != fp)
+                        fclose(fp);
+
+        }
+	return;
+}	
+#endif
+
 
 STATIC void get_url(char *parodus_url, char *seshat_url, char *build_type)
 {
@@ -1593,6 +1648,7 @@ STATIC void get_parodusStart_logFile(char *parodusStart_Log)
  *
  * @param[in] serverUrl server url from config json
  */
+#if !defined(_PLATFORM_BANANAPI_R4_)
 STATIC int checkServerUrlFormat(char *serverUrl)
 {
     int chCnt = 0;
@@ -1666,6 +1722,7 @@ STATIC void checkAndUpdateServerUrlFromDevCfg(char **serverUrl)
             free(tempUrl);
            
 }
+#endif
 STATIC void waitForPSMHealth(char *compName)
 {
 	int count = 0;
