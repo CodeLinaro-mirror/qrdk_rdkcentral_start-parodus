@@ -914,7 +914,11 @@ STATIC void get_webpa_url(char *webpaUrl){
                     if((value = strstr(str, "SERVERURL=")))
                     {
                         value = value + strlen("SERVERURL=");
-                        strcpy_s(webpaUrl, MAX_SERVER_URL_SIZE, value);
+                        errno_t rc = strcpy_s(webpaUrl, MAX_SERVER_URL_SIZE, value);
+                        if (rc != 0) {
+                            LogError("Failed to copy SERVERURL to webpaUrl (strcpy_s error code: %d)", rc);
+                            webpaUrl[0] = '\0';
+                        }
                         fclose(fp);
                         return;
 
