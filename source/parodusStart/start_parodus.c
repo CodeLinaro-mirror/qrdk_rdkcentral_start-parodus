@@ -455,8 +455,6 @@ int main(int argc, char *argv[])
               if (cm_hal_GetDHCPInfo(&dhcpinfo) == 0)
 	      {
 		       LogInfo("MACAddress = %s\n", dhcpinfo.MACAddress);
-		       rc = strcpy_s(deviceMac, sizeof(deviceMac), dhcpinfo.MACAddress);
-                       rc = strcpy_s(deviceMac, sizeof(deviceMac), dhcpinfo.MACAddress);
 	               if(rc != EOK)
          	       {
 	             	      ERR_CHK(rc);
