@@ -924,9 +924,6 @@ STATIC void get_webpa_url(char *webpaUrl){
 
                     }
               }
-                if (NULL != fp)
-                        fclose(fp);
-
         }
 	return;
 }	
