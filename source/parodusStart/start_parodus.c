@@ -538,10 +538,10 @@ int main(int argc, char *argv[])
 	 LogInfo("build_type returned is %s\n", build_type);
 
 
-	 #if defined(_PLATFORM_BANANAPI_R4_)
-	 	 webpaUrl=(char *)malloc(MAX_SERVER_URL_SIZE * sizeof(char)); 
-		 get_webpa_url(webpaUrl);
-         #else
+#if defined(_PLATFORM_BANANAPI_R4_)
+	webpaUrl=(char *)malloc(MAX_SERVER_URL_SIZE * sizeof(char)); 
+	get_webpa_url(webpaUrl);
+#else
 	if(strncmp(build_type, "dev", strlen(build_type)+1) == 0)
 	{
 		getValueFromCfgJson( WEBPA_CFG_SERVER_URL, &webpaUrl, &out);
@@ -553,7 +553,7 @@ int main(int argc, char *argv[])
 			cJSON_Delete(out);
 		}
 	}
-        #endif
+#endif
 
         getPartnerId(partner_id);
         LogInfo("PartnerID fetched is %s\n", partner_id);
