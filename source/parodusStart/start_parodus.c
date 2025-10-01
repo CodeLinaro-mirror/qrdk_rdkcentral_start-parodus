@@ -546,7 +546,7 @@ int main(int argc, char *argv[])
 	{
 		getValueFromCfgJson( WEBPA_CFG_SERVER_URL, &webpaUrl, &out);
 		LogInfo("webpaUrl fetched from webpa_cfg.json is %s\n", webpaUrl);
-                checkAndUpdateServerUrlFromDevCfg(&webpaUrl);
+        checkAndUpdateServerUrlFromDevCfg(&webpaUrl);
 		LogInfo("Framed webpa url is %s\n",webpaUrl);
 		if(out != NULL)
 		{
