@@ -465,24 +465,23 @@ int main(int argc, char *argv[])
           #else
               if (platform_hal_GetBaseMacAddress(deviceMac) == 0)
 			  {
-
-                    LogInfo("Mac address  returned from hal:%s\n", deviceMac);
+                LogInfo("Mac address  returned from hal:%s\n", deviceMac);
                       
          #endif			  
-                   if((strlen(deviceMac) != 0) && (strcmp(deviceMac, DEFAULT_CM_MAC) != 0))
-                   {
-                      LogInfo("deviceMac is %s\n", deviceMac);
-                      break;
-                   }
+                if((strlen(deviceMac) != 0) && (strcmp(deviceMac, DEFAULT_CM_MAC) != 0))
+                {
+                     LogInfo("deviceMac is %s\n", deviceMac);
+                     break;
+                }
 
-                   if (strcmp(deviceMac, DEFAULT_CM_MAC) == 0)
-                   {
-                          LogError("Failed to retrieve correct MAC\n");
-                   }
-                   if (strlen(deviceMac) == 0)
-                   {
-                          LogError("Empty MAC Address\n");
-                   }
+                if (strcmp(deviceMac, DEFAULT_CM_MAC) == 0)
+                {
+                     LogError("Failed to retrieve correct MAC\n");
+                }
+                if (strlen(deviceMac) == 0)
+                {
+                     LogError("Empty MAC Address\n");
+                }
 			  }
               LogError("Unable to get MAC Address. Retrying...\n");
 	      LogInfo("New backoffRetryTime value calculated as %d seconds\n", backoffRetryTime);
