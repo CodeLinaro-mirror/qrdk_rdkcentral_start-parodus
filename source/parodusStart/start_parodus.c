@@ -891,30 +891,28 @@ RETURN_ERROR:
 #if defined(_PLATFORM_BANANAPI_R4_)
 STATIC void get_webpa_url(char *webpaUrl){
 
-        FILE *fp = fopen(DEVICE_PROPS_FILE, "r");
-        if (NULL != fp)
+    FILE *fp = fopen(DEVICE_PROPS_FILE, "r");
+    if (NULL != fp)
+    {
+        char str[255] = {'\0'};
+        while(fscanf(fp,"%s", str) != EOF)
         {
-                char str[255] = {'\0'};
-                while(fscanf(fp,"%s", str) != EOF)
-                {
-                    char *value = NULL;
-                    if((value = strstr(str, "SERVERURL=")))
-                    {
-                        value = value + strlen("SERVERURL=");
-                        strcpy_s(webpaUrl, MAX_SERVER_URL_SIZE, value);
-                        fclose(fp);
-                        return;
+            char *value = NULL;
+            if((value = strstr(str, "SERVERURL=")))
+            {
+                value = value + strlen("SERVERURL=");
+                strcpy_s(webpaUrl, MAX_SERVER_URL_SIZE, value);
+                fclose(fp);
+                return;
+            }
+         }
+         if (NULL != fp)
+             fclose(fp);
 
-                    }
-              }
-                if (NULL != fp)
-                        fclose(fp);
-
-        }
+	}
 	return;
 }	
-#endif
-
+#end if
 
 STATIC void get_url(char *parodus_url, char *seshat_url, char *build_type)
 {
