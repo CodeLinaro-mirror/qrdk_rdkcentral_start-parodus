@@ -454,33 +454,33 @@ int main(int argc, char *argv[])
 	      #if !defined(_PLATFORM_RASPBERRYPI_) && !defined(_PLATFORM_BANANAPI_R4_)
               if (cm_hal_GetDHCPInfo(&dhcpinfo) == 0)
 	          {
-		         LogInfo("MACAddress = %s\n", dhcpinfo.MACAddress);
-		         rc = strcpy_s(deviceMac, sizeof(deviceMac), dhcpinfo.MACAddress);
-                 rc = strcpy_s(deviceMac, sizeof(deviceMac), dhcpinfo.MACAddress);
-	             if(rc != EOK)
-         	     {
-	                 ERR_CHK(rc);
-        	         LogError("Failed to Copy dhcpinfo.MACAddress to deviceMac\n");
-                 }
+		          LogInfo("MACAddress = %s\n", dhcpinfo.MACAddress);
+		          rc = strcpy_s(deviceMac, sizeof(deviceMac), dhcpinfo.MACAddress);
+                  rc = strcpy_s(deviceMac, sizeof(deviceMac), dhcpinfo.MACAddress);
+	              if(rc != EOK)
+         	      {
+	                  ERR_CHK(rc);
+        	          LogError("Failed to Copy dhcpinfo.MACAddress to deviceMac\n");
+                  }
           #else
               if (platform_hal_GetBaseMacAddress(deviceMac) == 0)
 			  {
-                 LogInfo("Mac address  returned from hal:%s\n", deviceMac);     
+                  LogInfo("Mac address  returned from hal:%s\n", deviceMac);     
          #endif			  
-                 if((strlen(deviceMac) != 0) && (strcmp(deviceMac, DEFAULT_CM_MAC) != 0))
-                 {
-                     LogInfo("deviceMac is %s\n", deviceMac);
-                     break;
-                 }
+                  if((strlen(deviceMac) != 0) && (strcmp(deviceMac, DEFAULT_CM_MAC) != 0))
+                  {
+                      LogInfo("deviceMac is %s\n", deviceMac);
+                      break;
+                  }
 
-                 if (strcmp(deviceMac, DEFAULT_CM_MAC) == 0)
-                 {
-                     LogError("Failed to retrieve correct MAC\n");
-                 }
-                 if (strlen(deviceMac) == 0)
-                 {
-                     LogError("Empty MAC Address\n");
-                 }
+                  if (strcmp(deviceMac, DEFAULT_CM_MAC) == 0)
+                  {
+                      LogError("Failed to retrieve correct MAC\n");
+                  }
+                  if (strlen(deviceMac) == 0)
+                  {
+                      LogError("Empty MAC Address\n");
+                  }
 			  }
               LogError("Unable to get MAC Address. Retrying...\n");
 	          LogInfo("New backoffRetryTime value calculated as %d seconds\n", backoffRetryTime);
