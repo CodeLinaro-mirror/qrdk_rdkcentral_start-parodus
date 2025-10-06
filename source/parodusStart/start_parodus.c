@@ -889,7 +889,8 @@ RETURN_ERROR:
 /*----------------------------------------------------------------------------*/
 
 #if defined(_PLATFORM_BANANAPI_R4_)
-STATIC void get_webpa_url(char *webpaUrl){
+STATIC void get_webpa_url(char *webpaUrl)
+{
     FILE *fp = fopen(DEVICE_PROPS_FILE, "r");
     if (NULL != fp)
     {
