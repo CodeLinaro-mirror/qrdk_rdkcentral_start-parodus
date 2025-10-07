@@ -912,7 +912,7 @@ STATIC void get_webpa_url(char *webpaUrl)
 	}
 	return;
 }	
-#end if
+#endif
 
 STATIC void get_url(char *parodus_url, char *seshat_url, char *build_type)
 {
