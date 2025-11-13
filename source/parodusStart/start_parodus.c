@@ -1269,6 +1269,8 @@ STATIC void getWebpaValuesFromPsmDb(char *names[], char **values,int count)
     char tempBuf[MAX_BUF_SIZE] ={'\0'};
     int offset = 0, i=0, index=0;
     char temp[MAX_VALUE_SIZE] = {'\0'};
+    const size_t fmtBufSize = 32;
+    char fmt[fmtBufSize];
 
     for(i=0; i<count; i++)
     {
@@ -1300,7 +1302,8 @@ STATIC void getWebpaValuesFromPsmDb(char *names[], char **values,int count)
                 char *t = strrchr(buf, '"');
                 if(t)
                     *t = '\0';
-                if(sscanf(buf, "%dX=\"%s\n", &index, temp)  == 2 && index == i) {
+		snprintf(fmt, sizeof(fmt), "%%dX=\"%%%ds", MAX_VALUE_SIZE - 1);
+		if (sscanf(buf, fmt, &index, temp) == 2 && index == i) {
                     values[i] = (char *) malloc(sizeof(char)* MAX_VALUE_SIZE);
                     rc = strcpy_s(values[i], MAX_VALUE_SIZE, temp);
                     if(rc != EOK)
@@ -1596,7 +1599,7 @@ STATIC void get_parodusStart_logFile(char *parodusStart_Log)
 	if (NULL != fp)
 	{
 		char str[255] = {'\0'};
-		while(fscanf(fp,"%s", str) != EOF)
+		while(fscanf(fp,"%254s", str) != EOF)
 		{
 		    char *value = NULL;
 		    
@@ -1737,13 +1740,13 @@ STATIC void waitForPSMHealth(char *compName)
         }
 		
 		FILE *f;
-    		if ((f = popen(comp_status_cmd, "r")) == NULL) 
-    		{
+    		if ((f = popen(comp_status_cmd, "r")) == NULL)
+		{
         		LogError("Error in getting status\n");
         		return;
         	}
                 /* Coverity Fix CID:62204 CHECKED_RETURN */
-		if( fscanf(f,"%s",comp_status) == EOF )      	
+		if( fscanf(f,"%254s",comp_status) == EOF )
         		LogError("Error in fscanf() return\n");
     		pclose(f);
 
@@ -1780,7 +1783,7 @@ STATIC void getSECertSupport(char *seCert_support)
 	if (NULL != fp)
 	{
 		char str[255] = {'\0'};
-		while(fscanf(fp,"%s", str) != EOF)
+		while(fscanf(fp,"%254s", str) != EOF)
 		{
 			char *value = NULL;
 			if((value = strstr(str, "UseSEBasedCert=")))
@@ -1820,7 +1823,7 @@ static int getDeviceConfigFile()
 	char useSECertValue[MAX_BUF_SIZE] = {'\0'};
 	getSECertSupport(useSECertValue);
 
-	if((NULL != useSECertValue) && (strncmp(useSECertValue, "true", 4) == 0))
+	if((strncmp(useSECertValue, "true", 4) == 0))
 	{
 		if(stat(SE_DEVICE_CERT, &devFatrib) == 0)
 		{
@@ -1833,15 +1836,14 @@ static int getDeviceConfigFile()
 			return 2;
 		}
 	}
-
-	if(((NULL != useSECertValue) && (strncmp(useSECertValue, "true", 4) == 0)) && (stat(SE_DEVICE_CERT, &devFatrib) == 0))
+	if(((strncmp(useSECertValue, "true", 4) == 0)) && (stat(SE_DEVICE_CERT, &devFatrib) == 0))
 	{
 		LogInfo("Dynamic xPKI SE Certificate procured\n");
 		rv = 1;
 	}
 	else if(stat(DEVICE_CERT, &devFatrib) == 0)
 	{
-		if((NULL != useSECertValue) && (strncmp(useSECertValue, "true", 4) == 0))
+		if((strncmp(useSECertValue, "true", 4) == 0))
                 {
 			LogInfo("xPKI SE Certificate not present, Using xPKI Dynamic Certificate\n");
                 }                  
