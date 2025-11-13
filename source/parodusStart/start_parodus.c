@@ -923,7 +923,7 @@ STATIC void get_url(char *parodus_url, char *seshat_url, char *build_type)
 	if (NULL != fp)
 	{
 		char str[255] = {'\0'};
-		while(fscanf(fp,"%s", str) != EOF)
+		while(fscanf(fp,"%254s", str) != EOF)
 		{
 		    char *value = NULL;
 		    
