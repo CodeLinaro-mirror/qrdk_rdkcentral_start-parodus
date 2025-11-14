@@ -1746,7 +1746,7 @@ STATIC void waitForPSMHealth(char *compName)
         		return;
         	}
                 /* Coverity Fix CID:62204 CHECKED_RETURN */
-		if( fscanf(f,"%254s",comp_status) == EOF )
+		if( fscanf(f,"%31s",comp_status) == EOF )
         		LogError("Error in fscanf() return\n");
     		pclose(f);
 
