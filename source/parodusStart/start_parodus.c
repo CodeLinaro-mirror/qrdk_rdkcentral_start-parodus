@@ -1898,8 +1898,14 @@ STATIC int getPartnerSpecificParam(const char *partner_id, const char *param_nam
     }
 
     memset(data, 0, (sizeof(char) * (len + 1)));
-    fread(data, 1, len, fileRead);
+    size_t bytesRead = fread(data, 1, len, fileRead);
     fclose(fileRead);
+    if (bytesRead != (size_t)len)
+    {
+        LogError("Failed to read complete JSON file: expected %ld bytes, got %zu\n", len, bytesRead);
+        free(data);
+        return -1;
+    }
 
     // Parse JSON
     json = cJSON_Parse(data);
@@ -1965,6 +1971,11 @@ STATIC void updateWebpaCrucialUrlFromPartnerJson(char *partner_id)
         {
             if (partnerServerUrl != NULL && partnerServerUrl[0] != '\0')
             {
+                /* Free any previous heap-allocated value before updating. */
+                if (WEBPA_SERVER_URL != NULL && WEBPA_SERVER_URL != partnerServerUrl)
+                {
+                    free(WEBPA_SERVER_URL);
+                }
                 WEBPA_SERVER_URL = partnerServerUrl;
                 LogInfo("Updated WEBPA_SERVER_URL from partner JSON: %s\n", WEBPA_SERVER_URL);
             }
