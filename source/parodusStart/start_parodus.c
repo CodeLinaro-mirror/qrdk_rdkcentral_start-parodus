@@ -150,9 +150,10 @@ STATIC void checkAndUpdateServerUrlFromDevCfg(char **serverUrl);
 int s_sysevent_connect (token_t *out_se_token);
 #endif
 static char *pathPrefix  = "eRT.com.cisco.spvtg.ccsp.webpa.";
-static char *WEBPA_SERVER_URL = "";
-static char *TOKEN_SERVER_URL = "";
-static char *DNS_TEXT_URL = "";
+
+STATIC char *WEBPA_SERVER_URL = NULL;
+STATIC char *TOKEN_SERVER_URL = NULL;
+STATIC char *DNS_TEXT_URL = NULL;
 
 STATIC void getSECertSupport(char *seCert_support);
 static int getDeviceConfigFile();
@@ -626,9 +627,9 @@ int main(int argc, char *argv[])
 			free(psmValues[i]);
 		}
 	}
-	LogInfo("WEBPA_SERVER_URL = %s\n", WEBPA_SERVER_URL);
-	LogInfo("TOKEN_SERVER_URL = %s\n", TOKEN_SERVER_URL);
-	LogInfo("DNS_TEXT_URL = %s\n", DNS_TEXT_URL);
+	LogInfo("WEBPA_SERVER_URL = %s\n", WEBPA_SERVER_URL ? WEBPA_SERVER_URL : "(null)");
+	LogInfo("TOKEN_SERVER_URL = %s\n", TOKEN_SERVER_URL ? TOKEN_SERVER_URL : "(null)");
+	LogInfo("DNS_TEXT_URL = %s\n", DNS_TEXT_URL ? DNS_TEXT_URL : "(null)");
 
 	// Update from partner JSON if webpa related crucial URLs are empty
 	if (partner_id[0] != '\0')
@@ -639,8 +640,36 @@ int main(int argc, char *argv[])
 	if(webpaUrl == NULL || webpaUrl[0] == '\0')
 	{
 		LogInfo("Setting webpaUrl to default server IP\n");
-		webpaUrl = strdup(WEBPA_SERVER_URL);
-		LogInfo("webpaUrl is %s\n", webpaUrl);
+		if(WEBPA_SERVER_URL != NULL && WEBPA_SERVER_URL[0] != '\0')
+		{
+			/* Free existing allocation if webpaUrl is non-NULL but empty */
+			if(webpaUrl != NULL)
+			{
+				free(webpaUrl);
+				webpaUrl = NULL;
+			}
+			
+			webpaUrl = strdup(WEBPA_SERVER_URL);
+			if(webpaUrl != NULL)
+			{
+				LogInfo("webpaUrl is %s\n", webpaUrl);
+			}
+			else
+			{
+				LogError("strdup failed for WEBPA_SERVER_URL\n");
+			}
+		}
+		else
+		{
+			LogError("WEBPA_SERVER_URL is NULL or empty, cannot set webpaUrl\n");
+		}
+	}
+
+	/* Validate webpaUrl is set before proceeding */
+	if(webpaUrl == NULL || webpaUrl[0] == '\0')
+	{
+		LogError("Unable to determine webpa URL, cannot start parodus\n");
+		goto RETURN_ERROR;
 	}
 
 
@@ -1836,7 +1865,7 @@ STATIC int getPartnerSpecificParam(const char *partner_id, const char *param_nam
     cJSON *json = NULL;
     cJSON *partnerObj = NULL;
     cJSON *paramObj = NULL;
-    int len = 0;
+    long len = 0;
     errno_t rc = -1;
     char cleanPartnerId[MAX_PARTNERID_LEN] = {'\0'};
     char *partnerKey = NULL;
@@ -1981,7 +2010,7 @@ STATIC void updateWebpaCrucialUrlFromPartnerJson(char *partner_id)
             }
             else
             {
-                LogError("Retrieved empty value from partner JSON\n");
+                LogError("Retrieved empty value from partner JSON for WEBPA_SERVER_URL\n");
                 if (partnerServerUrl != NULL)
                 {
                     free(partnerServerUrl);
@@ -2010,12 +2039,17 @@ STATIC void updateWebpaCrucialUrlFromPartnerJson(char *partner_id)
 		{
 			if (partnerServerUrl != NULL && partnerServerUrl[0] != '\0')
 			{
+				/* Free any previous heap-allocated value before updating. */
+				if (TOKEN_SERVER_URL != NULL && TOKEN_SERVER_URL != partnerServerUrl)
+				{
+					free(TOKEN_SERVER_URL);
+				}
 				TOKEN_SERVER_URL = partnerServerUrl;
 				LogInfo("Updated TOKEN_SERVER_URL from partner JSON: %s\n", TOKEN_SERVER_URL);
 			}
 			else
 			{
-				LogError("Retrieved empty value from partner JSON\n");
+				LogError("Retrieved empty value from partner JSON for TOKEN_SERVER_URL\n");
 				if (partnerServerUrl != NULL)
 				{
 					free(partnerServerUrl);
@@ -2044,12 +2078,17 @@ STATIC void updateWebpaCrucialUrlFromPartnerJson(char *partner_id)
 		{
 			if (partnerServerUrl != NULL && partnerServerUrl[0] != '\0')
 			{
+				/* Free any previous heap-allocated value before updating. */
+				if (DNS_TEXT_URL != NULL && DNS_TEXT_URL != partnerServerUrl)
+				{
+					free(DNS_TEXT_URL);
+				}
 				DNS_TEXT_URL = partnerServerUrl;
 				LogInfo("Updated DNS_TEXT_URL from partner JSON: %s\n", DNS_TEXT_URL);
 			}
 			else
 			{
-				LogError("Retrieved empty value from partner JSON\n");
+				LogError("Retrieved empty value from partner JSON for DNS_TEXT_URL\n");
 				if (partnerServerUrl != NULL)
 				{
 					free(partnerServerUrl);
