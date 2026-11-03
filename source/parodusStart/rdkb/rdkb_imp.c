@@ -535,7 +535,35 @@ int getDeviceMac(char *deviceMac, size_t macLen)
 
     memset(deviceMac, 0, macLen);
 
-#if defined(_COSA_BCM_MIPS_)
+#if defined(_WNXL11BWL_PRODUCT_REQ_)
+    FILE *fp = popen("sh /usr/sbin/deviceinfo.sh -cmac", "r");
+    if (fp != NULL)
+    {
+        char buffer[BUFFER_LEN_32] = {0};
+        char *newline = NULL;
+
+        if (fgets(buffer, sizeof(buffer), fp) != NULL && strstr(buffer, ":") != NULL)
+        {
+            newline = strchr(buffer, '\n');
+            if (newline != NULL)
+            {
+                *newline = '\0';
+            }
+            rc = strcpy_s(deviceMac, macLen, buffer);
+            if (rc != EOK)
+            {
+                ERR_CHK(rc);
+                LogError("Failed to Copy TmpBuffer to deviceMac\n");
+            }
+            LogInfo("XLE deviceMac is %s\n", deviceMac);
+        }
+        else
+        {
+            LogError("eth0 MAC address is empty\n");
+        }
+        pclose(fp);
+    }
+#elif defined(_COSA_BCM_MIPS_)
     dpoe_mac_address_t dpoeMac;
 
     if (dpoe_getOnuId(&dpoeMac) == 0)
